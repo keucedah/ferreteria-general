@@ -20,11 +20,11 @@ export async function crearClienteServidor() {
   });
 }
 
-/** Devuelve el usuario si inició sesión y es administrador; si no, null. */
-export async function obtenerAdmin() {
+/** Usuario con sesión y si puede administrar esta tienda (es su dueño o es el administrador del panel). */
+export async function obtenerAdmin(tiendaId: number) {
   const supabase = await crearClienteServidor();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return { supabase, user: null, esAdmin: false };
-  const { data: esAdmin } = await supabase.rpc("es_admin");
+  const { data: esAdmin } = await supabase.rpc("es_admin_tienda", { t: tiendaId });
   return { supabase, user: data.user, esAdmin: esAdmin === true };
 }
