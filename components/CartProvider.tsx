@@ -22,9 +22,9 @@ type CarritoCtx = {
 };
 
 const Ctx = createContext<CarritoCtx | null>(null);
-const CLAVE = "ferreteria-carrito";
-
-export function CartProvider({ children }: { children: React.ReactNode }) {
+// Cada tienda guarda su propio carrito en el navegador.
+export function CartProvider({ clave, children }: { clave: string; children: React.ReactNode }) {
+  const CLAVE = `carrito-${clave}`;
   const [items, setItems] = useState<ItemCarrito[]>([]);
   const [abierto, setAbierto] = useState(false);
   const [cargado, setCargado] = useState(false);
@@ -37,14 +37,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // almacenamiento no disponible: el carrito funciona solo en esta visita
     }
     setCargado(true);
-  }, []);
+  }, [CLAVE]);
 
   useEffect(() => {
     if (!cargado) return;
     try {
       localStorage.setItem(CLAVE, JSON.stringify(items));
     } catch {}
-  }, [items, cargado]);
+  }, [items, cargado, CLAVE]);
 
   const agregar = useCallback((item: Omit<ItemCarrito, "cantidad">, cantidad = 1) => {
     setItems((prev) => {

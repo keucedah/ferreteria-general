@@ -13,16 +13,23 @@ export type Producto = {
   creado_en: string;
 };
 
-export type Configuracion = {
+/** Fila de la tabla "tiendas". */
+export type FilaTienda = {
+  id: number;
+  slug: string;
   nombre_tienda: string;
   logo_url: string | null;
   logo_path: string | null;
   codigo_pais: string;
   celular: string;
+  activa: boolean;
 };
 
 /** Datos de la tienda ya listos para mostrar. */
 export type Tienda = {
+  id: number;
+  slug: string;
+  activa: boolean;
   nombre: string;
   logoUrl: string | null;
   celularFormateado: string;

@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import type { Categoria, Producto } from "@/lib/types";
 import ImagenProducto from "./ImagenProducto";
 import BotonAgregar from "./BotonAgregar";
+import { useBase } from "./BaseTienda";
 
 type Orden = "recientes" | "az" | "za";
 
@@ -14,7 +15,8 @@ const normalizar = (s: string) =>
 
 export default function Catalogo({ categorias, productos }: { categorias: Categoria[]; productos: Producto[] }) {
   const router = useRouter();
-  const pathname = usePathname();
+  const base = useBase();
+  const pathname = base || "/";
   const params = useSearchParams();
 
   const [busqueda, setBusqueda] = useState(params.get("q") ?? "");
@@ -123,7 +125,7 @@ export default function Catalogo({ categorias, productos }: { categorias: Catego
         <ul className="mt-4 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
           {visibles.map((p) => (
             <li key={p.id} className="group flex flex-col overflow-hidden rounded-xl border bg-white shadow-sm transition hover:shadow-md">
-              <Link href={`/producto/${p.id}`} className="block">
+              <Link href={`${base}/producto/${p.id}`} className="block">
                 <ImagenProducto src={p.imagen_url} alt={p.nombre} className="aspect-square w-full" />
               </Link>
               <div className="flex flex-1 flex-col gap-2 p-3">
@@ -132,7 +134,7 @@ export default function Catalogo({ categorias, productos }: { categorias: Catego
                     {nombreCategoria.get(p.categoria_id)}
                   </span>
                 )}
-                <Link href={`/producto/${p.id}`} className="line-clamp-2 font-semibold leading-snug hover:text-marca-700">
+                <Link href={`${base}/producto/${p.id}`} className="line-clamp-2 font-semibold leading-snug hover:text-marca-700">
                   {p.nombre}
                 </Link>
                 <p className="line-clamp-2 flex-1 text-sm text-gray-600">{p.descripcion}</p>

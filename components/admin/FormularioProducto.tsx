@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { useActionState, useEffect, useRef, useState } from "react";
 import type { Categoria, Producto } from "@/lib/types";
-import type { Resultado } from "@/app/admin/acciones";
+import type { Resultado } from "@/app/acciones-admin";
 
 type Props = {
   categorias: Categoria[];

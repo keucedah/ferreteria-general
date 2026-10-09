@@ -3,14 +3,16 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { useCarrito } from "./CartProvider";
+import { useBase } from "./BaseTienda";
 import type { Tienda } from "@/lib/types";
 
 export default function Header({ tienda }: { tienda: Tienda }) {
   const { totalUnidades, abrir } = useCarrito();
+  const base = useBase();
   return (
     <header className="sticky top-0 z-30 border-b border-acero-800 bg-acero-900 text-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-        <Link href="/" className="flex min-w-0 items-center gap-2 text-lg font-bold tracking-tight">
+        <Link href={base || "/"} className="flex min-w-0 items-center gap-2 text-lg font-bold tracking-tight">
           {tienda.logoUrl ? (
             <img src={tienda.logoUrl} alt="" className="h-9 max-w-[120px] rounded object-contain" />
           ) : (
@@ -42,7 +44,7 @@ export default function Header({ tienda }: { tienda: Tienda }) {
             )}
           </button>
           {/* Acceso discreto para el administrador */}
-          <Link href="/entrar" className="text-xs font-medium uppercase tracking-wider text-gray-400 hover:text-white">
+          <Link href={`${base}/entrar`} className="text-xs font-medium uppercase tracking-wider text-gray-400 hover:text-white">
             Entrar
           </Link>
         </div>

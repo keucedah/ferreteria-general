@@ -2,12 +2,17 @@
 
 /* eslint-disable @next/next/no-img-element */
 import { useActionState, useState } from "react";
-import { guardarConfiguracion } from "@/app/admin/acciones";
+import type { Resultado } from "@/app/acciones-admin";
 import { PAISES, formatearCelular, normalizarCelular } from "@/lib/telefono";
-import type { Configuracion } from "@/lib/types";
+import type { FilaTienda } from "@/lib/types";
 
-export default function FormularioTienda({ config }: { config: Configuracion }) {
-  const [resultado, enviar, enviando] = useActionState(guardarConfiguracion, null);
+type Props = {
+  config: FilaTienda;
+  accion: (prev: Resultado, fd: FormData) => Promise<Resultado>;
+};
+
+export default function FormularioTienda({ config, accion }: Props) {
+  const [resultado, enviar, enviando] = useActionState(accion, null);
   const [codigo, setCodigo] = useState(config.codigo_pais);
   const [celular, setCelular] = useState(config.celular);
   const [vista, setVista] = useState<string | null>(config.logo_url);
@@ -18,7 +23,7 @@ export default function FormularioTienda({ config }: { config: Configuracion }) 
   return (
     <form action={enviar} className="space-y-4">
       <label className="block space-y-1">
-        <span className="text-sm font-medium">Nombre de la ferretería</span>
+        <span className="text-sm font-medium">Nombre de la tienda</span>
         <input name="nombre_tienda" required maxLength={60} defaultValue={config.nombre_tienda} className="campo" />
       </label>
 

@@ -1,10 +1,10 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
-import { crearCategoria } from "@/app/admin/acciones";
+import type { Resultado } from "@/app/acciones-admin";
 
-export default function FormularioCategoria() {
-  const [resultado, enviar, enviando] = useActionState(crearCategoria, null);
+export default function FormularioCategoria({ accion }: { accion: (prev: Resultado, fd: FormData) => Promise<Resultado> }) {
+  const [resultado, enviar, enviando] = useActionState(accion, null);
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {

@@ -1,30 +1,21 @@
-import { Suspense } from "react";
-import Catalogo from "@/components/Catalogo";
-import { obtenerCatalogo } from "@/lib/datos";
+import { redirect } from "next/navigation";
+import Link from "next/link";
 import { supabaseConfigurado } from "@/lib/config";
 
+// La raíz del sitio no muestra ninguna tienda: cada tienda tiene su dirección (/ferreteria, /ana...)
+// o su propio dominio. Con URL_INICIO en las variables de Vercel, la raíz lleva a esa página.
 export const dynamic = "force-dynamic";
 
-export default async function Inicio() {
-  const { categorias, productos } = await obtenerCatalogo();
+export default function Inicio() {
+  const destino = process.env.URL_INICIO;
+  if (destino) redirect(destino);
   return (
-    <>
-      <section className="bg-gradient-to-r from-acero-900 to-acero-800 text-white">
-        <div className="mx-auto max-w-6xl px-4 py-10">
-          <h1 className="text-2xl font-bold sm:text-3xl">Todo para tu obra y tu hogar</h1>
-          <p className="mt-2 max-w-xl text-gray-300">
-            Explora el catálogo, agrega lo que necesitas al carrito y envíanos tu cotización por WhatsApp.
-          </p>
-        </div>
-      </section>
+    <div className="mx-auto flex max-w-lg flex-1 flex-col items-center justify-center px-4 py-20 text-center">
+      <h1 className="text-2xl font-bold">Tiendas en línea</h1>
+      <p className="mt-2 text-gray-600">Para ver una tienda, abre el enlace que te compartió el negocio.</p>
       {!supabaseConfigurado && (
-        <p className="bg-amber-100 px-4 py-2 text-center text-sm text-amber-900">
-          Modo demostración: se muestran productos de ejemplo hasta conectar la base de datos.
-        </p>
+        <Link href="/demo" className="boton-primario mt-6">Ver tienda de demostración</Link>
       )}
-      <Suspense>
-        <Catalogo categorias={categorias} productos={productos} />
-      </Suspense>
-    </>
+    </div>
   );
 }
