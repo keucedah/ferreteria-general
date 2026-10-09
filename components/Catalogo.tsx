@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { Categoria, Producto } from "@/lib/types";
 import ImagenProducto from "./ImagenProducto";
 import BotonAgregar from "./BotonAgregar";
 import { useBase } from "./BaseTienda";
 
 type Orden = "recientes" | "az" | "za";
+
+const POR_PAGINA = 24;
 
 const normalizar = (s: string) =>
   s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
@@ -23,11 +25,17 @@ export default function Catalogo({ categorias, productos }: { categorias: Catego
   const [orden, setOrden] = useState<Orden>((params.get("orden") as Orden) || "recientes");
   const categoriaSel = params.get("categoria") ? Number(params.get("categoria")) : null;
 
-  const actualizarUrl = (cambios: Record<string, string | null>) => {
+  const inicioLista = useRef<HTMLParagraphElement>(null);
+
+  // Cambiar un filtro vuelve a la página 1. Cambiar de página queda en el historial (botón atrás).
+  const actualizarUrl = (cambios: Record<string, string | null>, nuevaEntrada = false) => {
     const p = new URLSearchParams(params.toString());
+    if (!("pagina" in cambios)) p.delete("pagina");
     for (const [k, v] of Object.entries(cambios)) (v ? p.set(k, v) : p.delete(k));
     const qs = p.toString();
-    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    const url = qs ? `${pathname}?${qs}` : pathname;
+    if (nuevaEntrada) router.push(url, { scroll: false });
+    else router.replace(url, { scroll: false });
   };
 
   const conteo = useMemo(() => {
@@ -48,6 +56,16 @@ export default function Catalogo({ categorias, productos }: { categorias: Catego
     else lista.sort((a, b) => b.creado_en.localeCompare(a.creado_en));
     return lista;
   }, [productos, busqueda, categoriaSel, orden]);
+
+  const totalPaginas = Math.max(1, Math.ceil(visibles.length / POR_PAGINA));
+  const pagina = Math.min(Math.max(1, Math.floor(Number(params.get("pagina")) || 1)), totalPaginas);
+  const desde = (pagina - 1) * POR_PAGINA;
+  const enPagina = visibles.slice(desde, desde + POR_PAGINA);
+
+  const irA = (n: number) => {
+    actualizarUrl({ pagina: n > 1 ? String(n) : null }, true);
+    inicioLista.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const chip = (activo: boolean) =>
     `whitespace-nowrap rounded-full border px-3 py-1.5 text-sm transition ${
@@ -102,7 +120,8 @@ export default function Catalogo({ categorias, productos }: { categorias: Catego
         ))}
       </nav>
 
-      <p className="mt-3 text-sm text-gray-500">
+      <p ref={inicioLista} className="mt-3 scroll-mt-20 text-sm text-gray-500">
+        {totalPaginas > 1 && `${desde + 1}–${desde + enPagina.length} de `}
         {visibles.length} {visibles.length === 1 ? "producto" : "productos"}
         {categoriaSel !== null && nombreCategoria.get(categoriaSel) ? ` en ${nombreCategoria.get(categoriaSel)}` : ""}
         {busqueda ? ` para “${busqueda}”` : ""}
@@ -123,7 +142,7 @@ export default function Catalogo({ categorias, productos }: { categorias: Catego
         </div>
       ) : (
         <ul className="mt-4 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
-          {visibles.map((p) => (
+          {enPagina.map((p) => (
             <li key={p.id} className="group flex flex-col overflow-hidden rounded-xl border bg-white shadow-sm transition hover:shadow-md">
               <Link href={`${base}/producto/${p.id}`} className="block">
                 <ImagenProducto src={p.imagen_url} alt={p.nombre} className="aspect-square w-full" />
@@ -143,6 +162,26 @@ export default function Catalogo({ categorias, productos }: { categorias: Catego
             </li>
           ))}
         </ul>
+      )}
+
+      {totalPaginas > 1 && (
+        <nav className="mt-8 flex flex-wrap items-center justify-center gap-2" aria-label="Páginas">
+          <button className="boton-secundario min-w-11" aria-label="Primera página" onClick={() => irA(1)} disabled={pagina === 1}>
+            «<span className="hidden sm:inline"> Primera</span>
+          </button>
+          <button className="boton-secundario min-w-11" aria-label="Página anterior" onClick={() => irA(pagina - 1)} disabled={pagina === 1}>
+            ‹<span className="hidden sm:inline"> Anterior</span>
+          </button>
+          <span className="px-1 text-sm text-gray-600">
+            Página {pagina} de {totalPaginas}
+          </span>
+          <button className="boton-secundario min-w-11" aria-label="Página siguiente" onClick={() => irA(pagina + 1)} disabled={pagina === totalPaginas}>
+            <span className="hidden sm:inline">Siguiente </span>›
+          </button>
+          <button className="boton-secundario min-w-11" aria-label="Última página" onClick={() => irA(totalPaginas)} disabled={pagina === totalPaginas}>
+            <span className="hidden sm:inline">Última </span>»
+          </button>
+        </nav>
       )}
     </div>
   );
