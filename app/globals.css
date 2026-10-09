@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-gray-50 text-gray-900 antialiased;
+}
+
+@layer components {
+  .campo {
+    @apply w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-marca-500 focus:ring-2 focus:ring-marca-100;
+  }
+
+  .boton {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .boton-primario {
+    @apply boton bg-marca-600 text-white hover:bg-marca-700;
+  }
+
+  .boton-secundario {
+    @apply boton border border-gray-300 bg-white text-gray-800 hover:bg-gray-100;
+  }
+
+  .boton-whatsapp {
+    @apply boton bg-[#25D366] text-white hover:bg-[#1ebe5a];
+  }
+}
