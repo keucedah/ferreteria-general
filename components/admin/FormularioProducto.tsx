@@ -4,6 +4,7 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import type { Categoria, Producto } from "@/lib/types";
 import type { Resultado } from "@/app/acciones-admin";
+import { formatoPeso, optimizarCampo } from "@/lib/optimizarImagen";
 
 type Props = {
   categorias: Categoria[];
@@ -15,12 +16,15 @@ export default function FormularioProducto({ categorias, accion, producto }: Pro
   const [resultado, enviar, enviando] = useActionState(accion, null);
   const formRef = useRef<HTMLFormElement>(null);
   const [vista, setVista] = useState<string | null>(producto?.imagen_url ?? null);
+  const [peso, setPeso] = useState<string | null>(null);
+  const [optimizando, setOptimizando] = useState(false);
   const editando = Boolean(producto);
 
   useEffect(() => {
     if (resultado?.ok && !editando) {
       formRef.current?.reset();
       setVista(null);
+      setPeso(null);
     }
   }, [resultado, editando]);
 
@@ -39,13 +43,26 @@ export default function FormularioProducto({ categorias, accion, producto }: Pro
             type="file"
             accept="image/jpeg,image/png,image/webp,image/gif"
             required={!editando}
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              setVista(f ? URL.createObjectURL(f) : producto?.imagen_url ?? null);
+            onChange={async (e) => {
+              const input = e.currentTarget;
+              const original = input.files?.[0];
+              setPeso(null);
+              if (!original) {
+                setVista(producto?.imagen_url ?? null);
+                return;
+              }
+              setOptimizando(true);
+              const f = (await optimizarCampo(input)) ?? original;
+              setOptimizando(false);
+              setVista(URL.createObjectURL(f));
+              setPeso(f === original ? formatoPeso(f.size) : `${formatoPeso(f.size)} (antes ${formatoPeso(original.size)})`);
             }}
             className="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-marca-50 file:px-3 file:py-2 file:font-semibold file:text-marca-700 hover:file:bg-marca-100"
           />
         </div>
+        {(optimizando || peso) && (
+          <span className="block text-xs text-gray-500">{optimizando ? "Optimizando foto…" : `Foto lista: ${peso}`}</span>
+        )}
       </label>
 
       <label className="block space-y-1">
@@ -78,7 +95,7 @@ export default function FormularioProducto({ categorias, accion, producto }: Pro
         </p>
       )}
 
-      <button type="submit" disabled={enviando} className="boton-primario w-full">
+      <button type="submit" disabled={enviando || optimizando} className="boton-primario w-full">
         {enviando ? "Guardando…" : editando ? "Guardar cambios" : "Agregar producto"}
       </button>
     </form>

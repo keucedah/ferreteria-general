@@ -4,6 +4,7 @@
 import { useActionState, useState } from "react";
 import type { Resultado } from "@/app/acciones-admin";
 import { PAISES, formatearCelular, normalizarCelular } from "@/lib/telefono";
+import { optimizarCampo } from "@/lib/optimizarImagen";
 import type { FilaTienda } from "@/lib/types";
 
 type Props = {
@@ -17,6 +18,7 @@ export default function FormularioTienda({ config, accion }: Props) {
   const [celular, setCelular] = useState(config.celular);
   const [vista, setVista] = useState<string | null>(config.logo_url);
   const [quitar, setQuitar] = useState(false);
+  const [optimizando, setOptimizando] = useState(false);
 
   const cel = normalizarCelular(codigo, celular);
 
@@ -38,8 +40,15 @@ export default function FormularioTienda({ config, accion }: Props) {
               name="logo"
               type="file"
               accept="image/jpeg,image/png,image/webp,image/gif"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
+              onChange={async (e) => {
+                const input = e.currentTarget;
+                if (!input.files?.[0]) {
+                  setVista(config.logo_url);
+                  return;
+                }
+                setOptimizando(true);
+                const f = await optimizarCampo(input, 600);
+                setOptimizando(false);
                 setVista(f ? URL.createObjectURL(f) : config.logo_url);
                 if (f) setQuitar(false);
               }}
@@ -91,7 +100,7 @@ export default function FormularioTienda({ config, accion }: Props) {
         </p>
       )}
 
-      <button type="submit" disabled={enviando || !cel.ok} className="boton-primario w-full">
+      <button type="submit" disabled={enviando || optimizando || !cel.ok} className="boton-primario w-full">
         {enviando ? "Guardando…" : "Guardar datos de la tienda"}
       </button>
     </form>
